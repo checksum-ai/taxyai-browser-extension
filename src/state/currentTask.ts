@@ -23,6 +23,18 @@ export type TaskHistoryEntry = {
   usage: CreateCompletionResponseUsage;
 };
 
+function dynamicExecute(code: string, ...args: any[]) {
+  try {
+    // Create a new function with the code parameter as the function body
+    const fn = new Function(code);
+
+    // 调用函数
+    fn(...args);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export type CurrentTaskSlice = {
   tabId: number;
   instructions: string | null;
@@ -144,20 +156,22 @@ export const createCurrentTaskSlice: MyStateCreator<CurrentTaskSlice> = (
           }
           if (
             action === null ||
-            action.parsedAction.name === 'finish' ||
-            action.parsedAction.name === 'fail'
+            action.freeAction.name === 'finish' ||
+            action.freeAction.name === 'fail'
           ) {
             break;
           }
 
-          if (action.parsedAction.name === 'click') {
-            await callDOMAction('click', action.parsedAction.args);
-          } else if (action.parsedAction.name === 'setValue') {
-            await callDOMAction(
-              action?.parsedAction.name,
-              action?.parsedAction.args
-            );
-          }
+          // if (action.freeAction.name === 'click') {
+          //   await callDOMAction('click', action.freeAction.args);
+          // } else if (action.freeAction.name === 'setValue') {
+          //   await callDOMAction(
+          //     action?.freeAction.name,
+          //     action?.freeAction.args
+          //   );
+          // }
+          // eval(action.freeAction.fn);
+          dynamicExecute(action.freeAction.fnBody);
 
           if (wasStopped()) break;
 

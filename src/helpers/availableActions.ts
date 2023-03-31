@@ -10,6 +10,26 @@ export const availableActions = [
     ],
   },
   {
+    name: 'querySelectorAll',
+    description: 'query all elements matched css selector',
+    args: [
+      {
+        name: 'selector',
+        type: 'string',
+      },
+    ],
+  },
+  {
+    name: 'querySelector',
+    description: 'query one or more elements with css selector',
+    args: [
+      {
+        name: 'selector',
+        type: 'string',
+      },
+    ],
+  },
+  {
     name: 'setValue',
     description: 'Focuses on and sets the value of an input element',
     args: [
@@ -61,3 +81,8 @@ export type ActionPayload = {
     Extract<AvailableAction, { name: K }>
   >;
 }[AvailableAction['name']];
+
+export type FreeActionPayload = {
+  name: string;
+  fnBody: string;
+}

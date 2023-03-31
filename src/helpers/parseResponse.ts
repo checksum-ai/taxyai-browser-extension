@@ -1,9 +1,10 @@
-import { ActionPayload, availableActions } from './availableActions';
+import { ActionPayload, availableActions, FreeActionPayload } from './availableActions';
 
 export type ParsedResponseSuccess = {
   thought: string;
   action: string;
-  parsedAction: ActionPayload;
+  // parsedAction: ActionPayload;
+  freeAction: FreeActionPayload;
 };
 
 export type ParsedResponse =
@@ -13,8 +14,11 @@ export type ParsedResponse =
     };
 
 export function parseResponse(text: string): ParsedResponse {
-  const thoughtMatch = text.match(/<Thought>(.*?)<\/Thought>/);
-  const actionMatch = text.match(/<Action>(.*?)<\/Action>/);
+  const thoughtMatch = text.match(/<Thought>([\s\S]*?)<\/Thought>/);
+  const actionMatch = text.match(/<Action>([\s\S]*?)<\/Action>/);
+
+  console.log('[feat] thoughtMatch', thoughtMatch);
+  console.log('[feat] actionMatch', actionMatch);
 
   if (!thoughtMatch) {
     return {
@@ -30,8 +34,10 @@ export function parseResponse(text: string): ParsedResponse {
 
   const thought = thoughtMatch[1];
   const actionString = actionMatch[1];
+  console.log('[feat] actionString', actionString);
   const actionPattern = /(\w+)\((.*?)\)/;
   const actionParts = actionString.match(actionPattern);
+  console.log('[feat] actionParts', actionParts);
 
   if (!actionParts) {
     return {
@@ -40,72 +46,81 @@ export function parseResponse(text: string): ParsedResponse {
     };
   }
 
-  const actionName = actionParts[1];
-  const actionArgsString = actionParts[2];
+  // const actionName = actionParts[1];
+  // const actionArgsString = actionParts[2];
 
-  const availableAction = availableActions.find(
-    (action) => action.name === actionName
-  );
+  // const availableAction = availableActions.find(
+  //   (action) => action.name === actionName
+  // );
 
-  if (!availableAction) {
-    return {
-      error: `Invalid action: "${actionName}" is not a valid action.`,
-    };
+  // if (!availableAction) {
+  //   return {
+  //     error: `Invalid action: "${actionName}" is not a valid action.`,
+  //   };
+  // }
+
+  // const argsArray = actionArgsString
+  //   .split(',')
+  //   .map((arg) => arg.trim())
+  //   .filter((arg) => arg !== '');
+  // const parsedArgs: Record<string, number | string> = {};
+
+  // if (argsArray.length !== availableAction.args.length) {
+  //   return {
+  //     error: `Invalid number of arguments: Expected ${availableAction.args.length} for action "${actionName}", but got ${argsArray.length}.`,
+  //   };
+  // }
+
+  // for (let i = 0; i < argsArray.length; i++) {
+  //   const arg = argsArray[i];
+  //   const expectedArg = availableAction.args[i];
+
+  //   if (expectedArg.type === 'number') {
+  //     const numberValue = Number(arg);
+
+  //     if (isNaN(numberValue)) {
+  //       return {
+  //         error: `Invalid argument type: Expected a number for argument "${expectedArg.name}", but got "${arg}".`,
+  //       };
+  //     }
+
+  //     parsedArgs[expectedArg.name] = numberValue;
+  //   } else if (expectedArg.type === 'string') {
+  //     const stringValue =
+  //       (
+  //         (arg.startsWith('"') && arg.endsWith('"')) ||
+  //         (arg.startsWith("'") && arg.endsWith("'"))
+  //       ) ? arg.slice(1, -1) : null;
+
+  //     if (stringValue === null) {
+  //       return {
+  //         error: `Invalid argument type: Expected a string for argument "${expectedArg.name}", but got "${arg}".`,
+  //       };
+  //     }
+
+  //     parsedArgs[expectedArg.name] = stringValue;
+  //   } else {
+  //     return {
+  //       // @ts-expect-error this is here to make sure we don't forget to update this code if we add a new arg type
+  //       error: `Invalid argument type: Unknown type "${expectedArg.type}" for argument "${expectedArg.name}".`,
+  //     };
+  //   }
+  // }
+
+  // const parsedAction = {
+  //   name: availableAction.name,
+  //   args: parsedArgs,
+  // } as ActionPayload;
+
+  const freeAction: FreeActionPayload = {
+    name: thought,
+    fnBody: actionString,
   }
-
-  const argsArray = actionArgsString
-    .split(',')
-    .map((arg) => arg.trim())
-    .filter((arg) => arg !== '');
-  const parsedArgs: Record<string, number | string> = {};
-
-  if (argsArray.length !== availableAction.args.length) {
-    return {
-      error: `Invalid number of arguments: Expected ${availableAction.args.length} for action "${actionName}", but got ${argsArray.length}.`,
-    };
-  }
-
-  for (let i = 0; i < argsArray.length; i++) {
-    const arg = argsArray[i];
-    const expectedArg = availableAction.args[i];
-
-    if (expectedArg.type === 'number') {
-      const numberValue = Number(arg);
-
-      if (isNaN(numberValue)) {
-        return {
-          error: `Invalid argument type: Expected a number for argument "${expectedArg.name}", but got "${arg}".`,
-        };
-      }
-
-      parsedArgs[expectedArg.name] = numberValue;
-    } else if (expectedArg.type === 'string') {
-      const stringValue =
-        arg.startsWith('"') && arg.endsWith('"') ? arg.slice(1, -1) : null;
-
-      if (stringValue === null) {
-        return {
-          error: `Invalid argument type: Expected a string for argument "${expectedArg.name}", but got "${arg}".`,
-        };
-      }
-
-      parsedArgs[expectedArg.name] = stringValue;
-    } else {
-      return {
-        // @ts-expect-error this is here to make sure we don't forget to update this code if we add a new arg type
-        error: `Invalid argument type: Unknown type "${expectedArg.type}" for argument "${expectedArg.name}".`,
-      };
-    }
-  }
-
-  const parsedAction = {
-    name: availableAction.name,
-    args: parsedArgs,
-  } as ActionPayload;
 
   return {
     thought,
     action: actionString,
-    parsedAction,
+    freeAction,
+    // parsedAction,
   };
 }
